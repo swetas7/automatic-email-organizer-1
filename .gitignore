@@ -1,0 +1,14 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# OAuth tokens & secrets
+token.pickle
+.env
+auth/credentials.json
+
+# OS files
+.DS_Store
