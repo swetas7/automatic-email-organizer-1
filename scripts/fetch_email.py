@@ -37,10 +37,10 @@ def fetch_one_unread_email(service):
 
     messages = results.get("messages", [])
     if not messages:
-        print("No unread emails found.")
-        return
+        return None
 
     msg_id = messages[0]["id"]
+
     msg = service.users().messages().get(
         userId="me",
         id=msg_id,
@@ -58,6 +58,7 @@ def fetch_one_unread_email(service):
 
     body = ""
     payload = msg["payload"]
+
     if "parts" in payload:
         for part in payload["parts"]:
             if part["mimeType"] == "text/plain":
@@ -69,12 +70,10 @@ def fetch_one_unread_email(service):
             payload["body"]["data"]
         ).decode("utf-8")
 
-    print("=" * 50)
-    print("FROM:", sender)
-    print("SUBJECT:", subject)
-    print("BODY (first 500 chars):")
-    print(body[:500])
-
-if __name__ == "__main__":
-    service = gmail_authenticate()
-    fetch_one_unread_email(service)
+    # ✅ RETURN DATA (NO PRINTING HERE)
+    return {
+        "id": msg_id,
+        "from": sender,
+        "subject": subject,
+        "body": body
+    }
