@@ -1,5 +1,6 @@
 from transformers import pipeline
 from scripts.fetch_email import gmail_authenticate, fetch_one_unread_email
+from scripts.summarize_email import summarize_email
 
 CATEGORIES = [
     "Classes & Lectures",
@@ -64,30 +65,47 @@ def apply_label_to_email(service, msg_id, label_name):
         print(f"Error applying label: {e}")
         return False
 
-
 if __name__ == "__main__":
+    import sys
+    
     print("Authenticating Gmail...")
     service = gmail_authenticate()
-    print("Fetching unread email...")
-    email = fetch_one_unread_email(service)
+    
+    # Check if date argument provided
+    date_filter = None
+    if len(sys.argv) > 1:
+        date_filter = sys.argv[1]
+        print(f"Filtering by date: {date_filter}")
+    
+    print("Fetching emails...")
+    from scripts.fetch_email import fetch_unread_emails
+    emails = fetch_unread_emails(service, max_results=10, date_filter=date_filter)
 
-    # THIS CHECK MUST BE IMMEDIATELY AFTER FETCH
-    if not email:
-        print("No unread emails found.")
+    if not emails:
+        print("No emails found.")
         exit()
 
-    print("\nEMAIL PREVIEW")
-    print("FROM   :", email["from"])
-    print("SUBJECT:", email["subject"])
-    print("BODY   :", email["body"][:300])
+    print(f"\n{'='*60}")
+    print(f"Processing {len(emails)} emails...")
+    print(f"{'='*60}")
 
-    print("\nRunning AI classification...\n")
+    for i, email in enumerate(emails, 1):
+        print(f"\n--- Email {i}/{len(emails)} ---")
+        print(f"FROM   : {email['from']}")
+        print(f"SUBJECT: {email['subject']}")
+        
+        label, score = classify_email(email["body"])
+        
+        print(f"CATEGORY: {label}")
+        print(f"CONFIDENCE: {round(score, 2)}")
+        
+        # Generate summary
+        summary = summarize_email(email["body"])
+        print(f"SUMMARY: {summary}")
+        
+        apply_label_to_email(service, email["id"], label)
+        print("✓ Label applied!")
 
-    label, score = classify_email(email["body"])
-
-    print("AI CLASSIFICATION RESULT")
-    print(f"Category   : {label}")
-    print(f"Confidence : {round(score, 2)}")
-    
-    print("\nApplying Label to Gmail...")
-    apply_label_to_email(service, email["id"], label)
+    print(f"\n{'='*60}")
+    print(f"Done! Processed {len(emails)} emails.")
+    print(f"{'='*60}")

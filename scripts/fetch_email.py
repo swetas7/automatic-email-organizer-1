@@ -70,12 +70,22 @@ def parse_message(service, msg_id):
         print(f"Error parsing message {msg_id}: {e}")
         return None
 
-def fetch_unread_emails(service, max_results=10):
-    """Fetches a list of unread emails."""
-    print(f"Fetching up to {max_results} unread emails...")
+def fetch_unread_emails(service, max_results=10, date_filter=None):
+    """Fetches a list of unread emails. 
+    date_filter: optional, format 'YYYY/MM/DD' to fetch emails from that date only.
+    """
+    query = "is:unread"
+    
+    if date_filter:
+        # Gmail query format: after:YYYY/MM/DD before:YYYY/MM/DD
+        query = f"is:unread after:{date_filter} "
+        print(f"Fetching unread emails from {date_filter}...")
+    else:
+        print(f"Fetching up to {max_results} unread emails...")
+    
     results = service.users().messages().list(
         userId="me",
-        q="is:unread",
+        q=query,
         maxResults=max_results
     ).execute()
 
