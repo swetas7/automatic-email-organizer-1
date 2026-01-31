@@ -1,6 +1,7 @@
 from transformers import pipeline
 from scripts.fetch_email import gmail_authenticate, fetch_one_unread_email
 from scripts.summarize_email import summarize_email
+from scripts.security_scan import scan_email
 
 CATEGORIES = [
     "Classes & Lectures",
@@ -99,9 +100,16 @@ if __name__ == "__main__":
         print(f"CATEGORY: {label}")
         print(f"CONFIDENCE: {round(score, 2)}")
         
-        # Generate summary
+               # Generate summary
         summary = summarize_email(email["body"])
         print(f"SUMMARY: {summary}")
+        
+        # Security scan
+        is_safe, security_reason = scan_email(email["subject"], email["body"], email["from"])
+        if is_safe:
+            print("SECURITY: ✅ Safe")
+        else:
+            print(f"SECURITY: ⚠️ WARNING - {security_reason}")
         
         apply_label_to_email(service, email["id"], label)
         print("✓ Label applied!")
