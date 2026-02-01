@@ -39,12 +39,15 @@ def parse_message(service, msg_id):
 
         headers = msg["payload"]["headers"]
         subject = sender = "Unknown"
+        email_date = "Unknown"
 
         for h in headers:
             if h["name"] == "Subject":
                 subject = h["value"]
             if h["name"] == "From":
                 sender = h["value"]
+            if h["name"] == "Date":
+                email_date = h["value"]
 
         body = ""
         payload = msg["payload"]
@@ -64,24 +67,34 @@ def parse_message(service, msg_id):
             "id": msg_id,
             "from": sender,
             "subject": subject,
-            "body": body
+            "body": body,
+            "date": email_date
         }
     except Exception as e:
         print(f"Error parsing message {msg_id}: {e}")
         return None
 
-def fetch_unread_emails(service, max_results=10, date_filter=None):
-    """Fetches a list of unread emails. 
+def fetch_unread_emails(service, max_results=10, date_filter=None, only_unread=True):
+    """Fetches a list of emails. 
     date_filter: optional, format 'YYYY/MM/DD' to fetch emails from that date only.
+    only_unread: if True, fetches only unread emails. If False, fetches all emails.
     """
-    query = "is:unread"
+    if only_unread:
+        query = "is:unread"
+        email_type = "unread"
+    else:
+        query = "in:anywhere"  # Fetch from ALL tabs (Promotions, Social, Updates, Primary)
+        email_type = "all"
     
     if date_filter:
-        # Gmail query format: after:YYYY/MM/DD before:YYYY/MM/DD
-        query = f"is:unread after:{date_filter} "
-        print(f"Fetching unread emails from {date_filter}...")
+        # Gmail query format: after:YYYY/MM/DD
+        if query:
+            query = f"{query} after:{date_filter}"
+        else:
+            query = f"after:{date_filter}"
+        print(f"Fetching {email_type} emails from {date_filter}...")
     else:
-        print(f"Fetching up to {max_results} unread emails...")
+        print(f"Fetching up to {max_results} {email_type} emails...")
     
     results = service.users().messages().list(
         userId="me",
@@ -90,7 +103,7 @@ def fetch_unread_emails(service, max_results=10, date_filter=None):
     ).execute()
 
     messages = results.get("messages", [])
-    print(f"Found {len(messages)} unread messages.")
+    print(f"Found {len(messages)} {email_type} messages.")
     
     email_data_list = []
     

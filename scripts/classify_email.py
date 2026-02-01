@@ -18,15 +18,26 @@ CATEGORIES = [
 ]
 
 
+# Cache the classifier globally
+_classifier = None
+
+def get_classifier():
+    global _classifier
+    if _classifier is None:
+        print("Loading zero-shot classifier (first time only)...")
+        _classifier = pipeline(
+            "zero-shot-classification",
+            model="facebook/bart-large-mnli"
+        )
+    return _classifier
+
 def classify_email(text):
-    print("Loading zero-shot classifier...")
-    classifier = pipeline(
-        "zero-shot-classification",
-        model="facebook/bart-large-mnli"
-    )
-
+    # Check for empty text
+    if not text or len(text.strip()) < 10:
+        return "No Readable Text", 0.0
+    
+    classifier = get_classifier()
     result = classifier(text, CATEGORIES)
-
     return result["labels"][0], result["scores"][0]
 
 def apply_label_to_email(service, msg_id, label_name):

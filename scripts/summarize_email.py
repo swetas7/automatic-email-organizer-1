@@ -1,16 +1,16 @@
 from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+import streamlit as st
 
 summarizer_model = None
 summarizer_tokenizer = None
 
+@st.cache_resource
 def load_summarizer():
-    global summarizer_model, summarizer_tokenizer
-    if summarizer_model is None:
-        print("🧠 Loading summarization model...")
-        model_name = "sshleifer/distilbart-cnn-12-6"
-        summarizer_tokenizer = AutoTokenizer.from_pretrained(model_name)
-        summarizer_model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
-    return summarizer_model, summarizer_tokenizer
+    print("🧠 Loading summarization model (cached)...")
+    model_name = "sshleifer/distilbart-cnn-12-6"
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_name)
+    return model, tokenizer
 
 def summarize_email(text):
     """Generates a short summary of the email body."""

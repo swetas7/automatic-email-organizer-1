@@ -58,14 +58,15 @@ def save_email(email_data, category, summary="", suggested_reply="", is_phishing
     c = conn.cursor()
     try:
         c.execute('''
-            INSERT INTO emails (id, sender, subject, body, category, summary, suggested_reply, is_phishing, security_reason, is_newsletter)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO emails (id, sender, subject, body, category, timestamp, summary, suggested_reply, is_phishing, security_reason, is_newsletter)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             email_data["id"],
             email_data["from"],
             email_data["subject"],
             email_data["body"],
             category,
+            email_data.get("date", ""),
             summary,
             suggested_reply,
             is_phishing,
