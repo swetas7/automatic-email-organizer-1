@@ -1,4 +1,4 @@
-# Automatic Email Organizer
+# InboxIQ- AI Powered Email Intelligence System
 
 An AI-powered email management system that automatically classifies, summarizes, secures, and organizes Gmail inboxes, helping users focus on important communication.
 
